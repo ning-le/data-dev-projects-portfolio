@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: MariaDB-flight-ads
+    uid: mariadb-flight-ads
+    type: mysql
+    access: proxy
+    url: 127.0.0.1:3306
+    user: hive
+    database: flight_ads
+    isDefault: false
+    editable: true
+    jsonData:
+      database: flight_ads
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
+    secureJsonData:
+      password: changeme

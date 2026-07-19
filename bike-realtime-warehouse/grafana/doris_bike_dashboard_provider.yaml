@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: bike-rt-dashboards
+    orgId: 1
+    folder: Bike RT
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /opt/module/grafana-v10.4.19/dashboards/bike_rt

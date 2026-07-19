@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: Doris-bike-rt
+    uid: doris-bike-rt
+    type: mysql
+    access: proxy
+    url: 127.0.0.1:9030
+    user: root
+    database: bike_rt
+    isDefault: false
+    editable: true
+    jsonData:
+      database: bike_rt
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
+    secureJsonData:
+      password: ""

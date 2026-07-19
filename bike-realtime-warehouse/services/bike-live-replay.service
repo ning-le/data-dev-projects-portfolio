@@ -1,0 +1,18 @@
+[Unit]
+Description=Bike Live Replay Producer
+After=network.target kafka-kraft.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=atguigu
+Group=atguigu
+WorkingDirectory=/home/atguigu/project/bike_rt_kraft_doris
+ExecStart=/home/atguigu/miniconda3/bin/python /home/atguigu/project/bike_rt_kraft_doris/scripts/replay_bike_trip_rt_live.py --speedup 60 --pause-seconds 5
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/atguigu/project/bike_rt_kraft_doris/logs/live_replay.out
+StandardError=append:/home/atguigu/project/bike_rt_kraft_doris/logs/live_replay.err
+
+[Install]
+WantedBy=multi-user.target

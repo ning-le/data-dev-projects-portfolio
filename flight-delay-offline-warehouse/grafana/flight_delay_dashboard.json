@@ -1,0 +1,531 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1000
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "table",
+          "rawSql": "SELECT SUM(flight_cnt) AS daily_flight_cnt FROM flight_ads.ads_hour_delay_trend WHERE flight_date = '$flight_date'",
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Flight Count",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "table",
+          "rawSql": "SELECT ROUND(SUM(arrival_delay_cnt) / NULLIF(SUM(valid_flight_cnt), 0) * 100, 2) AS arrival_delay_rate FROM flight_ads.ads_hour_delay_trend WHERE flight_date = '$flight_date'",
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Arrival Delay Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "time_series",
+          "rawSql": "SELECT STR_TO_DATE(CONCAT(flight_date, ' ', LPAD(scheduled_departure_hour, 2, '0'), ':00:00'), '%Y-%m-%d %H:%i:%s') AS time, departure_delay_rate * 100 AS departure_delay_rate, arrival_delay_rate * 100 AS arrival_delay_rate FROM flight_ads.ads_hour_delay_trend WHERE flight_date = '$flight_date' ORDER BY scheduled_departure_hour",
+          "refId": "A"
+        }
+      ],
+      "title": "Hourly Delay Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Arrival delay rate",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "id": 4,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.8,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "table",
+          "rawSql": "SELECT airline_name AS airline, arrival_delay_rate * 100 AS arrival_delay_rate FROM flight_ads.ads_airline_delay_rank WHERE flight_date = '$flight_date' ORDER BY rank_no LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Airline Arrival Delay Rate Top10",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "arrival_delay_rate"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "table",
+          "rawSql": "SELECT rank_no, route_code, origin_airport, destination_airport, flight_cnt, arrival_delay_cnt, arrival_delay_rate * 100 AS arrival_delay_rate FROM flight_ads.ads_route_delay_topn WHERE flight_date = '$flight_date' ORDER BY rank_no LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Route Arrival Delay Top10",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "mariadb-flight-ads"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "Departure delay rate",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 6,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.8,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "horizontal",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "mariadb-flight-ads"
+          },
+          "format": "table",
+          "rawSql": "SELECT CONCAT(airport_code, ' ', city) AS airport, departure_delay_rate * 100 AS departure_delay_rate FROM flight_ads.ads_airport_delay_topn WHERE flight_date = '$flight_date' ORDER BY rank_no LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Airport Departure Delay Rate Top10",
+      "type": "barchart"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": [
+    "flight-dw",
+    "spark",
+    "mariadb"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "2015-12-31",
+          "value": "2015-12-31"
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "mariadb-flight-ads"
+        },
+        "definition": "SELECT DISTINCT DATE_FORMAT(flight_date, '%Y-%m-%d') AS __text, DATE_FORMAT(flight_date, '%Y-%m-%d') AS __value FROM flight_ads.ads_hour_delay_trend ORDER BY __value DESC",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Flight Date",
+        "multi": false,
+        "name": "flight_date",
+        "options": [],
+        "query": "SELECT DISTINCT DATE_FORMAT(flight_date, '%Y-%m-%d') AS __text, DATE_FORMAT(flight_date, '%Y-%m-%d') AS __value FROM flight_ads.ads_hour_delay_trend ORDER BY __value DESC",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "2015-12-31T00:00:00Z",
+    "to": "2015-12-31T23:59:59Z"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Flight Delay Offline Warehouse Dashboard",
+  "uid": "flight-delay-dw",
+  "version": 1,
+  "weekStart": ""
+}

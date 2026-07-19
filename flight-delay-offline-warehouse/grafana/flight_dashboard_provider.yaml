@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: flight-dw-dashboards
+    orgId: 1
+    folder: Flight DW
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /opt/module/grafana/dashboards/flight_dw

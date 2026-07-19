@@ -1,0 +1,466 @@
+﻿{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT window_start as time, trip_cnt FROM bike_rt.ads_bike_trip_cnt_1m ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Latest Trip Count",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT window_start as time, uv FROM bike_rt.ads_bike_trip_cnt_1m ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Latest UV",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 8,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "value_and_name"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT window_start as time, avg_duration_sec FROM bike_rt.ads_bike_trip_cnt_1m ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Duration (s)",
+      "transformations": [],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT window_start as time, trip_cnt, uv, avg_duration_sec FROM bike_rt.ads_bike_trip_cnt_1m ORDER BY time",
+          "refId": "A"
+        }
+      ],
+      "title": "Trip Trend 1m",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 5,
+      "options": {
+        "basemap": {
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": true,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+              "color": {
+                "fixed": "dark-green",
+                "mode": "fixed"
+              },
+                "opacity": 1,
+                "size": {
+                  "fixed": 10,
+                  "mode": "fixed"
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "mode": "coords"
+            },
+            "name": "Start Heat",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "allLayers": true,
+          "id": "coords",
+          "lat": 22.55,
+          "lon": 114.05,
+          "zoom": 10
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT center_lat AS latitude, center_lng AS longitude, trip_cnt, start_grid FROM bike_rt.ads_bike_start_heat_5m WHERE window_start = (SELECT max(window_start) FROM bike_rt.ads_bike_start_heat_5m) ORDER BY trip_cnt DESC LIMIT 500",
+          "refId": "A"
+        }
+      ],
+      "title": "Start Heat Map",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 12
+      },
+      "id": 6,
+      "options": {
+        "basemap": {
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": true,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+              "color": {
+                "fixed": "red",
+                "mode": "fixed"
+              },
+                "opacity": 1,
+                "size": {
+                  "fixed": 10,
+                  "mode": "fixed"
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                }
+              }
+            },
+            "location": {
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "mode": "coords"
+            },
+            "name": "End Heat",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "allLayers": true,
+          "id": "coords",
+          "lat": 22.55,
+          "lon": 114.05,
+          "zoom": 10
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT center_lat AS latitude, center_lng AS longitude, trip_cnt, end_grid FROM bike_rt.ads_bike_end_heat_5m WHERE window_start = (SELECT max(window_start) FROM bike_rt.ads_bike_end_heat_5m) ORDER BY trip_cnt DESC LIMIT 500",
+          "refId": "A"
+        }
+      ],
+      "title": "End Heat Map",
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "id": 7,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT start_grid, trip_cnt, uv FROM bike_rt.ads_bike_start_heat_5m WHERE window_start = (SELECT max(window_start) FROM bike_rt.ads_bike_start_heat_5m) ORDER BY trip_cnt DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Start Grids",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "doris-bike-rt"
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "id": 8,
+      "targets": [
+        {
+          "datasource": {
+            "type": "mysql",
+            "uid": "doris-bike-rt"
+          },
+          "queryType": "sql",
+          "rawSql": "SELECT end_grid, trip_cnt, uv FROM bike_rt.ads_bike_end_heat_5m WHERE window_start = (SELECT max(window_start) FROM bike_rt.ads_bike_end_heat_5m) ORDER BY trip_cnt DESC LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Top End Grids",
+      "type": "table"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "bike",
+    "realtime",
+    "doris"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2021-08-31T00:00:00",
+    "to": "2021-08-31T02:30:00"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Bike RT Dashboard",
+  "uid": "bike-rt-dashboard",
+  "version": 4,
+  "weekStart": ""
+}
+
