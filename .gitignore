@@ -40,3 +40,8 @@ tmp/
 temp/
 dist/
 build/
+
+!nyc-taxi-data-quality/data/
+!nyc-taxi-data-quality/data/sample/
+!nyc-taxi-data-quality/data/sample/taxi_zone_lookup.csv
+!nyc-taxi-data-quality/data/sample/yellow_tripdata_sample.parquet

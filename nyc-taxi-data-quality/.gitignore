@@ -1,0 +1,11 @@
+venv/
+.venv/
+.idea/
+__pycache__/
+*.pyc
+
+db/*.db
+app/db/db/*.db
+
+logs/*.log
+data/raw/

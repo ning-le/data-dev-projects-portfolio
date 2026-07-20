@@ -1,0 +1,37 @@
+rules:
+  - task_name: yellow_taxi_daily_check
+    rule_type: not_null
+    rule_target: tpep_pickup_datetime
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: not_null
+    rule_target: PULocationID
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: not_null
+    rule_target: total_amount
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: fk_exists
+    rule_target: PULocationID
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: fk_exists
+    rule_target: DOLocationID
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: non_negative
+    rule_target: fare_amount
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: non_negative
+    rule_target: total_amount
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: non_negative
+    rule_target: trip_distance
+
+  - task_name: yellow_taxi_daily_check
+    rule_type: row_count_fluctuation
+    rule_target: biz_date
+    threshold: 0.4
