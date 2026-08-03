@@ -28,7 +28,10 @@ spark-sql "${COMMON_CONF[@]}" -f "$SQL_DIR/02_dwd_iceberg.sql"
 echo "[4/5] Build DWS Iceberg tables"
 spark-sql "${COMMON_CONF[@]}" -f "$SQL_DIR/03_dws_iceberg.sql"
 
-echo "[5/5] Build ADS Iceberg tables"
+echo "[5/6] Build ADS Iceberg tables"
 spark-sql "${COMMON_CONF[@]}" -f "$SQL_DIR/04_ads_iceberg.sql"
+
+echo "[6/6] Build ADS quality Iceberg tables"
+spark-sql "${COMMON_CONF[@]}" -f "$SQL_DIR/05_ads_quality_iceberg.sql"
 
 echo "Lakehouse ETL finished."

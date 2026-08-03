@@ -4,12 +4,12 @@ A lightweight lakehouse analytics and data quality platform based on NYC TLC yel
 
 ## Background
 
-This project has two parts:
+This project has two layers of output from the same taxi data chain:
 
 - Lakehouse analytics: build ODS/DWD/DWS/ADS tables with Spark SQL and Iceberg, then query ADS results through Trino/Grafana.
-- Quality governance: define quality rules with YAML, execute checks with Pandas, store run history in SQLite, and support rerun/backfill.
+- Quality monitoring: produce invalid-count, invalid-rate, and rule-result ADS tables from DWD quality flags.
 
-The main business scenario is taxi operation analysis. Data quality is used to protect the downstream warehouse and dashboard results.
+The main business scenario is taxi operation analysis. Data quality is integrated into the same Iceberg ADS layer, so Grafana can show business metrics and quality metrics together.
 
 ## Stack
 
@@ -83,7 +83,7 @@ Main tables:
 - ODS: `ods_yellow_taxi_trip`, `ods_taxi_zone`
 - DIM/DWD: `dim_taxi_zone`, `dwd_taxi_trip_detail`
 - DWS: `dws_taxi_day_stat`, `dws_pickup_zone_day_stat`, `dws_pickup_hour_stat`
-- ADS: `ads_taxi_daily_overview`, `ads_pickup_zone_top10`, `ads_pickup_hour_trend`
+- ADS: `ads_taxi_daily_overview`, `ads_pickup_zone_top10`, `ads_pickup_hour_trend`, `ads_taxi_quality_overview`, `ads_taxi_quality_rule_result`
 
 Main metrics:
 
@@ -95,6 +95,8 @@ Main metrics:
 - Abnormal trip count and rate
 - Pickup zone Top10
 - Hourly pickup trend
+- Quality invalid count/rate
+- Quality rule result by business date
 
 Lakehouse files:
 
@@ -102,6 +104,7 @@ Lakehouse files:
 - `lakehouse/sql/02_dwd_iceberg.sql`: build DIM and DWD cleaned detail table.
 - `lakehouse/sql/03_dws_iceberg.sql`: build reusable summary tables.
 - `lakehouse/sql/04_ads_iceberg.sql`: build dashboard result tables.
+- `lakehouse/sql/05_ads_quality_iceberg.sql`: build quality result tables from DWD flags.
 - `lakehouse/scripts/run_lakehouse_etl.sh`: run the full Spark SQL ETL chain.
 - `lakehouse/trino/dashboard_queries.sql`: Grafana panel SQL examples.
 

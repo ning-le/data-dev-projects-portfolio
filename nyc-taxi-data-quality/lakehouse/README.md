@@ -2,7 +2,7 @@
 
 This module upgrades the original NYC Taxi data quality project into a small lakehouse analytics project.
 
-The main goal is taxi operation analysis. Data quality checks are used as a governance module, not as the only business output.
+The main goal is taxi operation analysis with built-in quality monitoring. Business metrics and quality metrics are both produced from Iceberg DWD and exposed through the same ADS layer.
 
 ## Data Flow
 
@@ -18,13 +18,13 @@ NYC Taxi raw parquet / taxi zone csv
 -> Grafana
 ```
 
-Quality flow:
+Quality metrics are generated from the same DWD table:
 
 ```text
-Iceberg ODS/DWD or sample parquet
--> Python + YAML quality rules
--> SQLite task_runs / rule_results
--> Streamlit or Grafana quality dashboard
+Iceberg DWD quality flags
+-> Iceberg ADS quality tables
+-> Trino
+-> Grafana business + quality dashboard
 ```
 
 ## Components
@@ -34,7 +34,7 @@ Iceberg ODS/DWD or sample parquet
 - HDFS: raw file and Iceberg warehouse storage.
 - Trino: SQL query layer for Grafana.
 - Grafana: business dashboard.
-- Python/YAML/SQLite: lightweight data quality and backfill tracking.
+- Python/YAML/SQLite: optional lightweight rule runner for local quality-task demos.
 
 ## Tables
 
@@ -59,6 +59,8 @@ ADS:
 - `ads_taxi_daily_overview`
 - `ads_pickup_zone_top10`
 - `ads_pickup_hour_trend`
+- `ads_taxi_quality_overview`
+- `ads_taxi_quality_rule_result`
 
 ## Business Metrics
 
@@ -70,6 +72,8 @@ ADS:
 - Abnormal trip count and rate
 - Pickup zone Top10
 - Hourly pickup trend
+- Quality invalid count and rate
+- Quality rule result by business date
 
 ## Main Files
 
@@ -78,6 +82,7 @@ ADS:
 - `sql/02_dwd_iceberg.sql`: DIM and DWD processing.
 - `sql/03_dws_iceberg.sql`: reusable summary tables.
 - `sql/04_ads_iceberg.sql`: dashboard result tables.
+- `sql/05_ads_quality_iceberg.sql`: dashboard-ready quality result tables.
 - `scripts/upload_raw_to_hdfs.sh`: uploads raw files to HDFS.
 - `scripts/run_lakehouse_etl.sh`: runs all Spark SQL jobs.
 - `trino/iceberg.properties`: Trino Iceberg catalog example.
@@ -85,4 +90,4 @@ ADS:
 
 ## Interview Summary
 
-This project uses Iceberg to manage lakehouse tables and keeps the familiar ODS/DWD/DWS/ADS modeling flow. Spark SQL writes Iceberg tables, Trino queries ADS tables, and Grafana displays simple taxi operation metrics. The original data quality platform remains as a governance module for not-null, non-negative, foreign-key, and row-count fluctuation checks.
+This project uses Iceberg to manage lakehouse tables and keeps the familiar ODS/DWD/DWS/ADS modeling flow. Spark SQL writes Iceberg tables, DWD adds quality flags, ADS produces both operation metrics and quality-monitoring metrics, and Trino/Grafana display them in the same dashboard.

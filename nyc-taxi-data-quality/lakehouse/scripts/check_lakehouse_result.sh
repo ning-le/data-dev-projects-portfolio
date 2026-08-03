@@ -17,7 +17,9 @@ UNION ALL SELECT 'dim_taxi_zone', COUNT(*) FROM dim_taxi_zone
 UNION ALL SELECT 'dwd_taxi_trip_detail', COUNT(*) FROM dwd_taxi_trip_detail
 UNION ALL SELECT 'ads_taxi_daily_overview', COUNT(*) FROM ads_taxi_daily_overview
 UNION ALL SELECT 'ads_pickup_zone_top10', COUNT(*) FROM ads_pickup_zone_top10
-UNION ALL SELECT 'ads_pickup_hour_trend', COUNT(*) FROM ads_pickup_hour_trend;
+UNION ALL SELECT 'ads_pickup_hour_trend', COUNT(*) FROM ads_pickup_hour_trend
+UNION ALL SELECT 'ads_taxi_quality_overview', COUNT(*) FROM ads_taxi_quality_overview
+UNION ALL SELECT 'ads_taxi_quality_rule_result', COUNT(*) FROM ads_taxi_quality_rule_result;
 
 SELECT *
 FROM ads_taxi_daily_overview
@@ -35,6 +37,16 @@ FROM ads_pickup_hour_trend
 WHERE biz_date = DATE '2025-01-10'
 ORDER BY pickup_hour
 LIMIT 24;
+
+SELECT *
+FROM ads_taxi_quality_overview
+ORDER BY biz_date
+LIMIT 10;
+
+SELECT biz_date, rule_name, rule_target, check_status, failed_count, total_count, failed_rate
+FROM ads_taxi_quality_rule_result
+WHERE biz_date = DATE '2025-01-10'
+ORDER BY rule_name, rule_target;
 SQL
 
 spark-sql --jars "$ICEBERG_JAR" \

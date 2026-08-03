@@ -39,8 +39,29 @@ FROM iceberg.taxi_dw.ads_pickup_hour_trend
 WHERE biz_date = DATE '2025-01-10'
 ORDER BY pickup_hour;
 
--- Latest quality failed rules if quality results are exported to SQL database.
--- SELECT task_name, biz_date, rule_type, rule_target, actual_value, expected_value, message
--- FROM rule_result_latest
--- WHERE status = 'failed'
--- ORDER BY biz_date DESC;
+-- Daily quality overview from the same Iceberg ADS layer.
+SELECT
+    biz_date,
+    total_trip_cnt,
+    valid_trip_cnt,
+    invalid_trip_cnt,
+    invalid_amount_cnt,
+    invalid_distance_cnt,
+    invalid_location_cnt,
+    overall_invalid_rate
+FROM iceberg.taxi_dw.ads_taxi_quality_overview
+ORDER BY biz_date;
+
+-- Quality rule result for one business date.
+SELECT
+    biz_date,
+    rule_name,
+    rule_target,
+    check_status,
+    failed_count,
+    total_count,
+    failed_rate,
+    expected_value
+FROM iceberg.taxi_dw.ads_taxi_quality_rule_result
+WHERE biz_date = DATE '2025-01-10'
+ORDER BY rule_name, rule_target;
