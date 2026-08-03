@@ -1,12 +1,11 @@
-from datetime import datetime
-from pathlib import Path
-import sqlite3
 from datetime import datetime, timedelta
+from pathlib import Path
 import pandas as pd
 
 from app.config.loader import load_yaml
 
 from app.db.db_utils import get_connection
+from app.db.init_db import init_db
 from app.core.checks import (
     check_fk_exists,
     check_non_negative,
@@ -21,6 +20,8 @@ ZONE_PATH = BASE_DIR / "data" / "sample" / "taxi_zone_lookup.csv"
 
 
 def run_task(task_name: str, biz_date: str, run_type: str = "run"):
+    init_db()
+
     tasks_config = load_yaml(str(TASKS_PATH))
     rules_config = load_yaml(str(RULES_PATH))
 
@@ -75,6 +76,7 @@ def run_task(task_name: str, biz_date: str, run_type: str = "run"):
 
     passed = 0
     failed = 0
+    rule_result_rows = []
 
     for rule in task_rules:
         rule_type = rule["rule_type"]
@@ -97,6 +99,17 @@ def run_task(task_name: str, biz_date: str, run_type: str = "run"):
             passed += 1
         else:
             failed += 1
+
+        rule_result_rows.append(
+            {
+                "rule_type": rule_type,
+                "rule_target": rule_target,
+                "status": result["status"],
+                "actual_value": result["actual_value"],
+                "expected_value": result["expected_value"],
+                "message": result["message"],
+            }
+        )
 
         cursor.execute(
             """
@@ -136,6 +149,75 @@ def run_task(task_name: str, biz_date: str, run_type: str = "run"):
         ),
     )
 
+    cursor.execute(
+        """
+        DELETE FROM rule_result_latest
+        WHERE task_name = ? AND biz_date = ?
+        """,
+        (task_name, biz_date),
+    )
+
+    cursor.execute(
+        """
+        INSERT INTO task_run_latest (
+            task_name, biz_date, latest_run_id, run_type, status, row_count,
+            passed_rules, failed_rules, message, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(task_name, biz_date)
+        DO UPDATE SET
+            latest_run_id = excluded.latest_run_id,
+            run_type = excluded.run_type,
+            status = excluded.status,
+            row_count = excluded.row_count,
+            passed_rules = excluded.passed_rules,
+            failed_rules = excluded.failed_rules,
+            message = excluded.message,
+            updated_at = excluded.updated_at
+        """,
+        (
+            task_name,
+            biz_date,
+            run_id,
+            run_type,
+            final_status,
+            len(df),
+            passed,
+            failed,
+            final_message,
+            finished_at,
+        ),
+    )
+
+    for row in rule_result_rows:
+        cursor.execute(
+            """
+            INSERT INTO rule_result_latest (
+                task_name, biz_date, rule_type, rule_target, latest_run_id,
+                status, actual_value, expected_value, message, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(task_name, biz_date, rule_type, rule_target)
+            DO UPDATE SET
+                latest_run_id = excluded.latest_run_id,
+                status = excluded.status,
+                actual_value = excluded.actual_value,
+                expected_value = excluded.expected_value,
+                message = excluded.message,
+                updated_at = excluded.updated_at
+            """,
+            (
+                task_name,
+                biz_date,
+                row["rule_type"],
+                row["rule_target"],
+                run_id,
+                row["status"],
+                row["actual_value"],
+                row["expected_value"],
+                row["message"],
+                finished_at,
+            ),
+        )
+
     conn.commit()
     conn.close()
 
@@ -151,6 +233,8 @@ def run_task(task_name: str, biz_date: str, run_type: str = "run"):
 
 
 def list_runs(limit: int = 10):
+    init_db()
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -171,6 +255,8 @@ def list_runs(limit: int = 10):
 
 
 def rerun_task(run_id: int):
+    init_db()
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -222,10 +308,8 @@ def get_previous_day_row_count(task_name: str, biz_date: str):
     cursor.execute(
         """
         SELECT row_count
-        FROM task_runs
-        WHERE task_name = ? AND biz_date = ? AND status IN ('success', 'failed')
-        ORDER BY id DESC
-        LIMIT 1
+        FROM task_run_latest
+        WHERE task_name = ? AND biz_date = ?
         """,
         (task_name, previous_date),
     )

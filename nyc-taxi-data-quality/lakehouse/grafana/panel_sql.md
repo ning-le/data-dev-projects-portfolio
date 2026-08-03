@@ -1,0 +1,70 @@
+# Grafana Panel SQL
+
+Grafana should connect to Trino and query Iceberg ADS tables.
+
+## Daily Core Metrics
+
+```sql
+SELECT
+    SUM(trip_cnt) AS trip_cnt,
+    ROUND(SUM(total_amount), 2) AS total_amount,
+    ROUND(SUM(total_amount) / NULLIF(SUM(trip_cnt), 0), 2) AS avg_amount
+FROM iceberg.taxi_dw.ads_taxi_daily_overview;
+```
+
+## Daily Trip Trend
+
+```sql
+SELECT
+    biz_date,
+    trip_cnt
+FROM iceberg.taxi_dw.ads_taxi_daily_overview
+ORDER BY biz_date;
+```
+
+## Daily Amount Trend
+
+```sql
+SELECT
+    biz_date,
+    total_amount
+FROM iceberg.taxi_dw.ads_taxi_daily_overview
+ORDER BY biz_date;
+```
+
+## Pickup Zone Top10
+
+```sql
+SELECT
+    rank_no,
+    pickup_borough,
+    pickup_zone,
+    trip_cnt,
+    total_amount
+FROM iceberg.taxi_dw.ads_pickup_zone_top10
+WHERE biz_date = DATE '2025-01-10'
+ORDER BY rank_no;
+```
+
+## Hourly Pickup Trend
+
+```sql
+SELECT
+    pickup_hour,
+    trip_cnt,
+    total_amount,
+    abnormal_rate
+FROM iceberg.taxi_dw.ads_pickup_hour_trend
+WHERE biz_date = DATE '2025-01-10'
+ORDER BY pickup_hour;
+```
+
+## Abnormal Trip Rate
+
+```sql
+SELECT
+    biz_date,
+    abnormal_rate
+FROM iceberg.taxi_dw.ads_taxi_daily_overview
+ORDER BY biz_date;
+```

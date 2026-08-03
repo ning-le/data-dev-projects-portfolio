@@ -62,6 +62,38 @@ def init_db():
     )
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS task_run_latest (
+        task_name TEXT NOT NULL,
+        biz_date TEXT NOT NULL,
+        latest_run_id INTEGER NOT NULL,
+        run_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        row_count INTEGER DEFAULT 0,
+        passed_rules INTEGER DEFAULT 0,
+        failed_rules INTEGER DEFAULT 0,
+        message TEXT,
+        updated_at TEXT,
+        PRIMARY KEY (task_name, biz_date)
+    )
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS rule_result_latest (
+        task_name TEXT NOT NULL,
+        biz_date TEXT NOT NULL,
+        rule_type TEXT NOT NULL,
+        rule_target TEXT NOT NULL,
+        latest_run_id INTEGER NOT NULL,
+        status TEXT NOT NULL,
+        actual_value TEXT,
+        expected_value TEXT,
+        message TEXT,
+        updated_at TEXT,
+        PRIMARY KEY (task_name, biz_date, rule_type, rule_target)
+    )
+    """)
+
     conn.commit()
     conn.close()
 

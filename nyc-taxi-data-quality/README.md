@@ -1,10 +1,15 @@
-# NYC Taxi Data Quality Platform
+# NYC Taxi Lakehouse Analytics + Quality Platform
 
-A lightweight data quality and backfill platform based on NYC TLC yellow taxi trip data.
+A lightweight lakehouse analytics and data quality platform based on NYC TLC yellow taxi trip data.
 
 ## Background
 
-In an offline warehouse pipeline, source data should be checked before it is loaded into downstream DWD/DWS/ADS jobs. This project simulates that process with configurable quality rules, task execution history, rerun, backfill, and a Streamlit monitoring page.
+This project has two parts:
+
+- Lakehouse analytics: build ODS/DWD/DWS/ADS tables with Spark SQL and Iceberg, then query ADS results through Trino/Grafana.
+- Quality governance: define quality rules with YAML, execute checks with Pandas, store run history in SQLite, and support rerun/backfill.
+
+The main business scenario is taxi operation analysis. Data quality is used to protect the downstream warehouse and dashboard results.
 
 ## Stack
 
@@ -13,6 +18,11 @@ In an offline warehouse pipeline, source data should be checked before it is loa
 - SQLite
 - Streamlit
 - YAML
+- Spark SQL
+- Iceberg
+- HDFS
+- Trino
+- Grafana
 
 ## Project Structure
 
@@ -32,6 +42,11 @@ nyc-taxi-data-quality/
 |-- data/sample/
 |   |-- yellow_tripdata_sample.parquet
 |   `-- taxi_zone_lookup.csv
+|-- lakehouse/
+|   |-- sql/
+|   |-- scripts/
+|   |-- trino/
+|   `-- grafana/
 |-- scripts/make_sample.py
 |-- ui/dashboard.py
 `-- requirements.txt
@@ -44,8 +59,51 @@ nyc-taxi-data-quality/
 - Support `not_null`, `non_negative`, `fk_exists`, and `row_count_fluctuation`.
 - Store task-level run records in SQLite table `task_runs`.
 - Store rule-level check results in SQLite table `rule_results`.
+- Store latest task result in SQLite table `task_run_latest`.
+- Store latest rule result in SQLite table `rule_result_latest`.
 - Support normal run, historical rerun, and date-range backfill.
 - Provide a Streamlit dashboard for run status and failed rule analysis.
+- Provide an Iceberg lakehouse extension for taxi trip analysis.
+
+## Lakehouse Extension
+
+Data flow:
+
+```text
+NYC Taxi raw parquet / taxi zone csv
+-> HDFS raw area
+-> Spark SQL
+-> Iceberg ODS / DIM / DWD / DWS / ADS
+-> Trino
+-> Grafana
+```
+
+Main tables:
+
+- ODS: `ods_yellow_taxi_trip`, `ods_taxi_zone`
+- DIM/DWD: `dim_taxi_zone`, `dwd_taxi_trip_detail`
+- DWS: `dws_taxi_day_stat`, `dws_pickup_zone_day_stat`, `dws_pickup_hour_stat`
+- ADS: `ads_taxi_daily_overview`, `ads_pickup_zone_top10`, `ads_pickup_hour_trend`
+
+Main metrics:
+
+- Daily trip count
+- Daily total amount
+- Average order amount
+- Average trip distance
+- Average trip duration
+- Abnormal trip count and rate
+- Pickup zone Top10
+- Hourly pickup trend
+
+Lakehouse files:
+
+- `lakehouse/sql/01_ods_iceberg.sql`: load raw files into Iceberg ODS tables.
+- `lakehouse/sql/02_dwd_iceberg.sql`: build DIM and DWD cleaned detail table.
+- `lakehouse/sql/03_dws_iceberg.sql`: build reusable summary tables.
+- `lakehouse/sql/04_ads_iceberg.sql`: build dashboard result tables.
+- `lakehouse/scripts/run_lakehouse_etl.sh`: run the full Spark SQL ETL chain.
+- `lakehouse/trino/dashboard_queries.sql`: Grafana panel SQL examples.
 
 ## Commands
 

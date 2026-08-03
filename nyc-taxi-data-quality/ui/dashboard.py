@@ -50,3 +50,38 @@ st.dataframe(rule_results)
 st.subheader("Failed Rule Results")
 failed_rules = rule_results[rule_results["status"] == "failed"]
 st.dataframe(failed_rules)
+
+st.subheader("Latest Task Results")
+try:
+    conn = sqlite3.connect(DB_PATH)
+    latest_runs = pd.read_sql_query(
+        """
+        SELECT task_name, biz_date, latest_run_id, run_type, status, row_count,
+               passed_rules, failed_rules, message, updated_at
+        FROM task_run_latest
+        ORDER BY biz_date DESC, task_name
+        """,
+        conn,
+    )
+    conn.close()
+    st.dataframe(latest_runs)
+except Exception as exc:  # noqa: BLE001
+    st.info(f"Latest tables are not initialized yet: {exc}")
+
+st.subheader("Latest Failed Rules")
+try:
+    conn = sqlite3.connect(DB_PATH)
+    latest_failed_rules = pd.read_sql_query(
+        """
+        SELECT task_name, biz_date, rule_type, rule_target, latest_run_id,
+               actual_value, expected_value, message, updated_at
+        FROM rule_result_latest
+        WHERE status = 'failed'
+        ORDER BY biz_date DESC, rule_type, rule_target
+        """,
+        conn,
+    )
+    conn.close()
+    st.dataframe(latest_failed_rules)
+except Exception as exc:  # noqa: BLE001
+    st.info(f"Latest rule tables are not initialized yet: {exc}")
