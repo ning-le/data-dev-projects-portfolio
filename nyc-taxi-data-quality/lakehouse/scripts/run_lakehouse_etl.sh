@@ -7,8 +7,10 @@ SQL_DIR="$BASE_DIR/sql"
 source /etc/profile.d/bigdata.sh
 
 ICEBERG_JAR="${ICEBERG_JAR:-/opt/module/spark/jars/iceberg-spark-runtime.jar}"
+SPARK_MASTER="${SPARK_MASTER:-yarn}"
 
 COMMON_CONF=(
+  --master "$SPARK_MASTER"
   --jars "$ICEBERG_JAR"
   --conf spark.sql.catalog.taxi_catalog=org.apache.iceberg.spark.SparkCatalog
   --conf spark.sql.catalog.taxi_catalog.type=hadoop
