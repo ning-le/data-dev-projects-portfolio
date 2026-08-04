@@ -1,0 +1,314 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "nyc-taxi-lakehouse",
+    "title": "NYC Taxi Lakehouse Analytics",
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 1,
+    "refresh": "",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Trips",
+        "type": "stat",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT SUM(trip_cnt) AS total_trips FROM ads_taxi_daily_overview",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 2,
+        "title": "Total Amount",
+        "type": "stat",
+        "gridPos": {
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT ROUND(SUM(total_amount),2) AS total_amount FROM ads_taxi_daily_overview",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 3,
+        "title": "Avg Amount",
+        "type": "stat",
+        "gridPos": {
+          "x": 12,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT ROUND(SUM(total_amount)/SUM(trip_cnt),2) AS avg_amount FROM ads_taxi_daily_overview",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 4,
+        "title": "Overall Invalid Rate",
+        "type": "stat",
+        "gridPos": {
+          "x": 18,
+          "y": 0,
+          "w": 6,
+          "h": 4
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT ROUND(SUM(invalid_trip_cnt)/SUM(total_trip_cnt),4) AS invalid_rate FROM ads_taxi_quality_overview",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 5,
+        "title": "Daily Trip Trend",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 4,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT biz_date AS time, trip_cnt FROM ads_taxi_daily_overview ORDER BY biz_date",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 6,
+        "title": "Daily Amount Trend",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 12,
+          "y": 4,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT biz_date AS time, total_amount FROM ads_taxi_daily_overview ORDER BY biz_date",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 7,
+        "title": "Pickup Zone Top10 2025-01-10",
+        "type": "barchart",
+        "gridPos": {
+          "x": 0,
+          "y": 12,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT pickup_zone, trip_cnt FROM ads_pickup_zone_top10 WHERE biz_date='2025-01-10' ORDER BY rank_no",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 8,
+        "title": "Hourly Pickup Trend 2025-01-10",
+        "type": "barchart",
+        "gridPos": {
+          "x": 12,
+          "y": 12,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT pickup_hour, trip_cnt FROM ads_pickup_hour_trend WHERE biz_date='2025-01-10' ORDER BY pickup_hour",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 9,
+        "title": "Quality Invalid Rate",
+        "type": "timeseries",
+        "gridPos": {
+          "x": 0,
+          "y": 20,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT biz_date AS time, overall_invalid_rate FROM ads_taxi_quality_overview ORDER BY biz_date",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit"
+          },
+          "overrides": []
+        },
+        "options": {}
+      },
+      {
+        "id": 10,
+        "title": "Quality Rule Results 2025-01-10",
+        "type": "table",
+        "gridPos": {
+          "x": 12,
+          "y": 20,
+          "w": 12,
+          "h": 8
+        },
+        "datasource": {
+          "type": "mysql",
+          "uid": "nyc_taxi_mysql"
+        },
+        "targets": [
+          {
+            "refId": "A",
+            "format": "table",
+            "rawSql": "SELECT rule_name, rule_target, check_status, failed_count, total_count, failed_rate FROM ads_taxi_quality_rule_result WHERE biz_date='2025-01-10' ORDER BY rule_name, rule_target",
+            "rawQuery": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "options": {}
+      }
+    ]
+  },
+  "overwrite": true
+}
