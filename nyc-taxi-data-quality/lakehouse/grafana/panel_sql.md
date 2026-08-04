@@ -50,12 +50,10 @@ ORDER BY rank_no;
 
 ```sql
 SELECT
-    pickup_hour,
-    trip_cnt,
-    total_amount,
-    abnormal_rate
-FROM iceberg.taxi_dw.ads_pickup_hour_trend
-WHERE biz_date = DATE '2025-01-10'
+    DATE_ADD(biz_date, INTERVAL pickup_hour HOUR) AS time,
+    trip_cnt
+FROM ads_pickup_hour_trend
+WHERE biz_date = '2025-01-10'
 ORDER BY pickup_hour;
 ```
 
