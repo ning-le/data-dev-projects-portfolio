@@ -53,8 +53,7 @@ SELECT
     DATE_ADD(biz_date, INTERVAL pickup_hour HOUR) AS time,
     trip_cnt
 FROM ads_pickup_hour_trend
-WHERE biz_date = '2025-01-10'
-ORDER BY pickup_hour;
+ORDER BY biz_date, pickup_hour;
 ```
 
 ## Abnormal Trip Rate
