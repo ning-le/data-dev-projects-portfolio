@@ -34,7 +34,6 @@ Iceberg DWD quality flags
 - HDFS: raw file and Iceberg warehouse storage.
 - Trino: SQL query layer for Grafana.
 - Grafana: business dashboard.
-- Python/YAML/SQLite: optional lightweight rule runner for local quality-task demos.
 
 ## Tables
 

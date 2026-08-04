@@ -1,23 +1,15 @@
-# NYC Taxi Lakehouse Analytics + Quality Platform
+# NYC Taxi Lakehouse Analytics
 
-A lightweight lakehouse analytics and data quality platform based on NYC TLC yellow taxi trip data.
+A lightweight lakehouse analytics project based on NYC TLC yellow taxi trip data.
 
 ## Background
 
-This project has two layers of output from the same taxi data chain:
+This project builds an offline lakehouse pipeline for taxi operation analysis. It uses Spark SQL to process raw NYC Taxi files on HDFS, stores layered warehouse tables with Iceberg, and exposes ADS result tables to Trino/Grafana.
 
-- Lakehouse analytics: build ODS/DWD/DWS/ADS tables with Spark SQL and Iceberg, then query ADS results through Trino/Grafana.
-- Quality monitoring: produce invalid-count, invalid-rate, and rule-result ADS tables from DWD quality flags.
-
-The main business scenario is taxi operation analysis. Data quality is integrated into the same Iceberg ADS layer, so Grafana can show business metrics and quality metrics together.
+Data quality is not a separate Python task anymore. The DWD layer adds quality flags, and the ADS layer produces quality-monitoring result tables from those flags. Business metrics and quality metrics are displayed from the same Iceberg ADS layer.
 
 ## Stack
 
-- Python
-- Pandas
-- SQLite
-- Streamlit
-- YAML
 - Spark SQL
 - Iceberg
 - HDFS
@@ -28,124 +20,110 @@ The main business scenario is taxi operation analysis. Data quality is integrate
 
 ```text
 nyc-taxi-data-quality/
-|-- app/
-|   |-- cli.py
-|   |-- config/loader.py
-|   |-- core/checks.py
-|   |-- core/runner.py
-|   `-- db/
-|       |-- db_utils.py
-|       `-- init_db.py
-|-- configs/
-|   |-- rules.yaml
-|   `-- tasks.yaml
-|-- data/sample/
-|   |-- yellow_tripdata_sample.parquet
-|   `-- taxi_zone_lookup.csv
 |-- lakehouse/
 |   |-- sql/
+|   |   |-- 00_spark_iceberg_settings.sql
+|   |   |-- 01_ods_iceberg.sql
+|   |   |-- 02_dwd_iceberg.sql
+|   |   |-- 03_dws_iceberg.sql
+|   |   |-- 04_ads_iceberg.sql
+|   |   `-- 05_ads_quality_iceberg.sql
 |   |-- scripts/
+|   |   |-- upload_raw_to_hdfs.sh
+|   |   |-- run_lakehouse_etl.sh
+|   |   `-- check_lakehouse_result.sh
 |   |-- trino/
+|   |   |-- iceberg.properties
+|   |   `-- dashboard_queries.sql
 |   `-- grafana/
-|-- scripts/make_sample.py
-|-- ui/dashboard.py
-`-- requirements.txt
+|       `-- panel_sql.md
+`-- README.md
 ```
 
-## Features
-
-- Configure check tasks in `configs/tasks.yaml`.
-- Configure rule types and rule targets in `configs/rules.yaml`.
-- Support `not_null`, `non_negative`, `fk_exists`, and `row_count_fluctuation`.
-- Store task-level run records in SQLite table `task_runs`.
-- Store rule-level check results in SQLite table `rule_results`.
-- Store latest task result in SQLite table `task_run_latest`.
-- Store latest rule result in SQLite table `rule_result_latest`.
-- Support normal run, historical rerun, and date-range backfill.
-- Provide a Streamlit dashboard for run status and failed rule analysis.
-- Provide an Iceberg lakehouse extension for taxi trip analysis.
-
-## Lakehouse Extension
-
-Data flow:
+## Data Flow
 
 ```text
 NYC Taxi raw parquet / taxi zone csv
 -> HDFS raw area
 -> Spark SQL
--> Iceberg ODS / DIM / DWD / DWS / ADS
+-> Iceberg ODS
+-> Iceberg DIM / DWD
+-> Iceberg DWS
+-> Iceberg ADS business tables + quality tables
 -> Trino
 -> Grafana
 ```
 
-Main tables:
+## Tables
 
-- ODS: `ods_yellow_taxi_trip`, `ods_taxi_zone`
-- DIM/DWD: `dim_taxi_zone`, `dwd_taxi_trip_detail`
-- DWS: `dws_taxi_day_stat`, `dws_pickup_zone_day_stat`, `dws_pickup_hour_stat`
-- ADS: `ads_taxi_daily_overview`, `ads_pickup_zone_top10`, `ads_pickup_hour_trend`, `ads_taxi_quality_overview`, `ads_taxi_quality_rule_result`
+ODS:
 
-Main metrics:
+- `ods_yellow_taxi_trip`
+- `ods_taxi_zone`
+
+DIM/DWD:
+
+- `dim_taxi_zone`
+- `dwd_taxi_trip_detail`
+
+DWS:
+
+- `dws_taxi_day_stat`
+- `dws_pickup_zone_day_stat`
+- `dws_pickup_hour_stat`
+
+ADS:
+
+- `ads_taxi_daily_overview`
+- `ads_pickup_zone_top10`
+- `ads_pickup_hour_trend`
+- `ads_taxi_quality_overview`
+- `ads_taxi_quality_rule_result`
+
+## Metrics
+
+Business metrics:
 
 - Daily trip count
 - Daily total amount
 - Average order amount
 - Average trip distance
 - Average trip duration
-- Abnormal trip count and rate
 - Pickup zone Top10
 - Hourly pickup trend
-- Quality invalid count/rate
-- Quality rule result by business date
 
-Lakehouse files:
+Quality metrics:
 
-- `lakehouse/sql/01_ods_iceberg.sql`: load raw files into Iceberg ODS tables.
-- `lakehouse/sql/02_dwd_iceberg.sql`: build DIM and DWD cleaned detail table.
-- `lakehouse/sql/03_dws_iceberg.sql`: build reusable summary tables.
-- `lakehouse/sql/04_ads_iceberg.sql`: build dashboard result tables.
-- `lakehouse/sql/05_ads_quality_iceberg.sql`: build quality result tables from DWD flags.
-- `lakehouse/scripts/run_lakehouse_etl.sh`: run the full Spark SQL ETL chain.
-- `lakehouse/trino/dashboard_queries.sql`: Grafana panel SQL examples.
+- Invalid trip count
+- Invalid amount count and rate
+- Invalid distance count and rate
+- Invalid location count and rate
+- Quality rule status by business date
 
 ## Commands
 
-Initialize the SQLite metadata database:
+Upload raw files to HDFS:
 
 ```bash
-python -m app.cli init
+cd /home/atguigu/project/nyc-taxi-data-quality
+bash lakehouse/scripts/upload_raw_to_hdfs.sh
 ```
 
-Run one business date:
+Run the full lakehouse ETL:
 
 ```bash
-python -m app.cli run yellow_taxi_daily_check 2025-01-10
+cd /home/atguigu/project/nyc-taxi-data-quality
+export ICEBERG_JAR=/home/atguigu/jars/iceberg-spark-runtime-3.3_2.12-1.6.1.jar
+bash lakehouse/scripts/run_lakehouse_etl.sh
 ```
 
-List recent runs:
+Check ADS results:
 
 ```bash
-python -m app.cli list-runs --limit 10
-```
-
-Rerun one historical run:
-
-```bash
-python -m app.cli rerun 1
-```
-
-Backfill a date range:
-
-```bash
-python -m app.cli backfill yellow_taxi_daily_check 2025-01-10 2025-01-20
-```
-
-Start the dashboard:
-
-```bash
-streamlit run ui/dashboard.py
+cd /home/atguigu/project/nyc-taxi-data-quality
+bash lakehouse/scripts/check_lakehouse_result.sh
 ```
 
 ## Interview Summary
 
-This project is mainly used to explain data quality in offline data development. The core idea is to define quality rules with YAML, execute checks with Pandas, persist run history and failed rule details in SQLite, and support rerun/backfill when historical data needs to be repaired.
+This project uses Spark SQL and Iceberg to build an ODS/DWD/DWS/ADS lakehouse pipeline. DWD keeps cleaned taxi trip details and adds quality flags for amount, distance, and location validity. DWS builds reusable daily, zone, and hourly summaries. ADS produces both business dashboard tables and quality-monitoring tables. Grafana queries the Iceberg ADS layer through Trino, so operation metrics and quality metrics are shown in the same dashboard.

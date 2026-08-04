@@ -1,5 +1,0 @@
-tasks:
-  - task_name: yellow_taxi_daily_check
-    source_path: data/sample/yellow_tripdata_sample.parquet
-    date_column: biz_date
-    enabled: true
