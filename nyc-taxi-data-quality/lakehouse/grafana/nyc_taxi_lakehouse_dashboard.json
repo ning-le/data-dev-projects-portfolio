@@ -280,7 +280,7 @@
       },
       {
         "id": 10,
-        "title": "Quality Rule Results 2025-01-10",
+        "title": "Quality Rule Results",
         "type": "table",
         "gridPos": {
           "x": 12,
@@ -296,7 +296,7 @@
           {
             "refId": "A",
             "format": "table",
-            "rawSql": "SELECT rule_name, rule_target, check_status, failed_count, total_count, failed_rate FROM ads_taxi_quality_rule_result WHERE biz_date='2025-01-10' ORDER BY rule_name, rule_target",
+            "rawSql": "SELECT biz_date, rule_name, rule_target, check_status, failed_count, total_count, failed_rate FROM ads_taxi_quality_rule_result ORDER BY biz_date, rule_name, rule_target",
             "rawQuery": true
           }
         ],
