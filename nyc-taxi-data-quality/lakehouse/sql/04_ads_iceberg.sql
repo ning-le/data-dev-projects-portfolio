@@ -57,7 +57,9 @@ SELECT
         WHEN trip_cnt = 0 THEN 0
         ELSE ROUND(abnormal_trip_cnt / trip_cnt, 4)
     END AS abnormal_rate
-FROM dws_taxi_day_stat;
+FROM dws_taxi_day_stat
+WHERE '${hivevar:biz_date}' = '__ALL__'
+   OR biz_date = to_date('${hivevar:biz_date}');
 
 INSERT OVERWRITE ads_pickup_zone_top10
 SELECT
@@ -84,6 +86,10 @@ FROM (
         ) AS rank_no
     FROM dws_pickup_zone_day_stat
     WHERE pickup_location_id IS NOT NULL
+      AND (
+          '${hivevar:biz_date}' = '__ALL__'
+          OR biz_date = to_date('${hivevar:biz_date}')
+      )
 ) t
 WHERE rank_no <= 10;
 
@@ -101,4 +107,6 @@ SELECT
         WHEN trip_cnt = 0 THEN 0
         ELSE ROUND(abnormal_trip_cnt / trip_cnt, 4)
     END AS abnormal_rate
-FROM dws_pickup_hour_stat;
+FROM dws_pickup_hour_stat
+WHERE '${hivevar:biz_date}' = '__ALL__'
+   OR biz_date = to_date('${hivevar:biz_date}');

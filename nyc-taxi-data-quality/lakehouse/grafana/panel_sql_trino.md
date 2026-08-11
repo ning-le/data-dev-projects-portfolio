@@ -1,6 +1,6 @@
-# Grafana Panel SQL
+# Grafana Panel SQL - Trino Directly Reads Iceberg ADS
 
-Grafana should connect to Trino and query Iceberg ADS tables.
+Grafana connects to Trino. Trino reads Iceberg tables from `iceberg.taxi_dw` through Hive Metastore.
 
 ## Daily Core Metrics
 
@@ -9,27 +9,27 @@ SELECT
     SUM(trip_cnt) AS trip_cnt,
     ROUND(SUM(total_amount), 2) AS total_amount,
     ROUND(SUM(total_amount) / NULLIF(SUM(trip_cnt), 0), 2) AS avg_amount
-FROM iceberg.taxi_dw.ads_taxi_daily_overview;
+FROM iceberg.taxi_dw.ads_taxi_daily_overview
 ```
 
 ## Daily Trip Trend
 
 ```sql
 SELECT
-    biz_date,
+    CAST(biz_date AS timestamp) AS time,
     trip_cnt
 FROM iceberg.taxi_dw.ads_taxi_daily_overview
-ORDER BY biz_date;
+ORDER BY biz_date
 ```
 
 ## Daily Amount Trend
 
 ```sql
 SELECT
-    biz_date,
+    CAST(biz_date AS timestamp) AS time,
     total_amount
 FROM iceberg.taxi_dw.ads_taxi_daily_overview
-ORDER BY biz_date;
+ORDER BY biz_date
 ```
 
 ## Pickup Zone Top10
@@ -43,40 +43,27 @@ SELECT
     total_amount
 FROM iceberg.taxi_dw.ads_pickup_zone_top10
 WHERE biz_date = DATE '2025-01-10'
-ORDER BY rank_no;
+ORDER BY rank_no
 ```
 
 ## Hourly Pickup Trend
 
 ```sql
 SELECT
-    DATE_ADD(biz_date, INTERVAL pickup_hour HOUR) AS time,
+    date_add('hour', pickup_hour, CAST(biz_date AS timestamp)) AS time,
     trip_cnt
-FROM ads_pickup_hour_trend
-ORDER BY biz_date, pickup_hour;
-```
-
-## Abnormal Trip Rate
-
-```sql
-SELECT
-    biz_date,
-    abnormal_rate
-FROM iceberg.taxi_dw.ads_taxi_daily_overview
-ORDER BY biz_date;
+FROM iceberg.taxi_dw.ads_pickup_hour_trend
+ORDER BY biz_date, pickup_hour
 ```
 
 ## Quality Overview
 
 ```sql
 SELECT
-    biz_date,
-    total_trip_cnt,
-    valid_trip_cnt,
-    invalid_trip_cnt,
+    CAST(biz_date AS timestamp) AS time,
     overall_invalid_rate
 FROM iceberg.taxi_dw.ads_taxi_quality_overview
-ORDER BY biz_date;
+ORDER BY biz_date
 ```
 
 ## Quality Rule Results
@@ -91,5 +78,6 @@ SELECT
     failed_rate
 FROM iceberg.taxi_dw.ads_taxi_quality_rule_result
 WHERE biz_date = DATE '2025-01-10'
-ORDER BY rule_name, rule_target;
+ORDER BY rule_name, rule_target
 ```
+

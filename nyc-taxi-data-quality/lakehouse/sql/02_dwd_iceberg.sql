@@ -82,4 +82,8 @@ LEFT JOIN dim_taxi_zone do_zone
     ON t.DOLocationID = do_zone.location_id
 WHERE t.tpep_pickup_datetime IS NOT NULL
   AND t.tpep_dropoff_datetime IS NOT NULL
-  AND t.biz_date IS NOT NULL;
+  AND t.biz_date IS NOT NULL
+  AND (
+      '${hivevar:biz_date}' = '__ALL__'
+      OR t.biz_date = to_date('${hivevar:biz_date}')
+  );

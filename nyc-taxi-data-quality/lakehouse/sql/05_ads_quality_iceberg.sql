@@ -46,6 +46,8 @@ SELECT
     CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(SUM(CASE WHEN is_valid_location = 0 THEN 1 ELSE 0 END) / COUNT(*), 4) END AS invalid_location_rate,
     CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(SUM(CASE WHEN is_valid_amount = 0 OR is_valid_distance = 0 OR is_valid_location = 0 THEN 1 ELSE 0 END) / COUNT(*), 4) END AS overall_invalid_rate
 FROM dwd_taxi_trip_detail
+WHERE '${hivevar:biz_date}' = '__ALL__'
+   OR biz_date = to_date('${hivevar:biz_date}')
 GROUP BY biz_date;
 
 INSERT OVERWRITE ads_taxi_quality_rule_result
@@ -67,6 +69,8 @@ FROM (
         COUNT(*) AS total_count,
         'fare_amount >= 0 and total_amount >= 0' AS expected_value
     FROM dwd_taxi_trip_detail
+    WHERE '${hivevar:biz_date}' = '__ALL__'
+       OR biz_date = to_date('${hivevar:biz_date}')
     GROUP BY biz_date
 
     UNION ALL
@@ -79,6 +83,8 @@ FROM (
         COUNT(*) AS total_count,
         'trip_distance >= 0' AS expected_value
     FROM dwd_taxi_trip_detail
+    WHERE '${hivevar:biz_date}' = '__ALL__'
+       OR biz_date = to_date('${hivevar:biz_date}')
     GROUP BY biz_date
 
     UNION ALL
@@ -91,5 +97,7 @@ FROM (
         COUNT(*) AS total_count,
         'pickup and dropoff location exist in dim_taxi_zone' AS expected_value
     FROM dwd_taxi_trip_detail
+    WHERE '${hivevar:biz_date}' = '__ALL__'
+       OR biz_date = to_date('${hivevar:biz_date}')
     GROUP BY biz_date
 ) t;

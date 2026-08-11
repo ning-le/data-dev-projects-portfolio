@@ -1,0 +1,9 @@
+{
+  "name": "NYC Taxi Trino Iceberg",
+  "uid": "nyc_taxi_trino",
+  "type": "trino-datasource",
+  "access": "proxy",
+  "url": "http://localhost:8080",
+  "jsonData": {},
+  "isDefault": true
+}

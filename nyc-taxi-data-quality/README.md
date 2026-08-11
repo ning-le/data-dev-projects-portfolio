@@ -1,20 +1,32 @@
-# NYC Taxi Lakehouse Analytics
+# NYC Taxi Offline Lakehouse Analytics
 
-A lightweight lakehouse analytics project based on NYC TLC yellow taxi trip data.
+An offline lakehouse analytics project based on NYC TLC yellow taxi trip data.
 
 ## Background
 
-This project builds an offline lakehouse pipeline for taxi operation analysis. It uses Spark SQL to process raw NYC Taxi files on HDFS, stores layered warehouse tables with Iceberg, and exports ADS result tables to MariaDB for Grafana visualization.
-
-Data quality is not a separate Python task anymore. The DWD layer adds quality flags, and the ADS layer produces quality-monitoring result tables from those flags. Business metrics and quality metrics are displayed from the same Iceberg ADS layer.
+This project builds a Spark SQL and Iceberg based offline lakehouse pipeline for taxi operation analysis. It supports layered data processing, business-date backfill, direct Trino reads from Iceberg, data quality monitoring, and Grafana dashboard visualization.
 
 ## Stack
 
 - Spark SQL
 - Iceberg
 - HDFS
-- MariaDB
+- Trino
 - Grafana
+
+## Data Flow
+
+```text
+NYC Taxi raw parquet / taxi zone csv
+-> HDFS raw area
+-> Spark SQL
+-> Iceberg ODS
+-> Iceberg DIM / DWD
+-> Iceberg DWS
+-> Iceberg ADS business tables + quality tables
+-> Trino
+-> Grafana
+```
 
 ## Project Structure
 
@@ -27,123 +39,67 @@ nyc-taxi-data-quality/
 |   |   |-- 02_dwd_iceberg.sql
 |   |   |-- 03_dws_iceberg.sql
 |   |   |-- 04_ads_iceberg.sql
-|   |   |-- 05_ads_quality_iceberg.sql
-|   |   `-- 06_export_ads_to_mysql.sql
+|   |   `-- 05_ads_quality_iceberg.sql
 |   |-- scripts/
 |   |   |-- upload_raw_to_hdfs.sh
 |   |   |-- run_lakehouse_etl.sh
-|   |   |-- check_lakehouse_result.sh
-|   |   |-- init_mysql_ads_tables.sql
-|   |   `-- export_ads_to_mysql.sh
-|   |-- trino/
-|   |   |-- iceberg.properties
-|   |   `-- dashboard_queries.sql
+|   |   |-- check_trino_iceberg_result.sh
+|   |   `-- start_trino.sh
 |   `-- grafana/
-|       |-- panel_sql.md
-|       |-- mysql_datasource.json
-|       |-- nyc_taxi_lakehouse_dashboard.json
+|       |-- panel_sql_trino.md
+|       |-- trino_datasource.json
+|       |-- nyc_taxi_lakehouse_trino_dashboard.json
 |       `-- create_grafana_dashboard.sh
 `-- README.md
 ```
 
-## Data Flow
-
-```text
-NYC Taxi raw parquet / taxi zone csv
--> HDFS raw area
--> Spark SQL
--> Iceberg ODS
--> Iceberg DIM / DWD
--> Iceberg DWS
--> Iceberg ADS business tables + quality tables
--> MariaDB ADS export tables
--> Grafana
-```
-
 ## Tables
-
-ODS:
 
 - `ods_yellow_taxi_trip`
 - `ods_taxi_zone`
-
-DIM/DWD:
-
 - `dim_taxi_zone`
 - `dwd_taxi_trip_detail`
-
-DWS:
-
 - `dws_taxi_day_stat`
 - `dws_pickup_zone_day_stat`
 - `dws_pickup_hour_stat`
-
-ADS:
-
 - `ads_taxi_daily_overview`
 - `ads_pickup_zone_top10`
 - `ads_pickup_hour_trend`
 - `ads_taxi_quality_overview`
 - `ads_taxi_quality_rule_result`
 
-## Metrics
+## DWD Processing
 
-Business metrics:
+`dwd_taxi_trip_detail` keeps cleaned trip details and derives:
 
-- Daily trip count
-- Daily total amount
-- Average order amount
-- Average trip distance
-- Average trip duration
-- Pickup zone Top10
-- Hourly pickup trend
+- `trip_id`: MD5 key generated from vendor, pickup time, dropoff time, pickup location, dropoff location, and total amount.
+- `biz_date`: business date extracted from pickup time.
+- `pickup_hour`: pickup hour for hourly trend.
+- `trip_duration_sec`: dropoff timestamp minus pickup timestamp.
+- `is_valid_amount`: whether `fare_amount` and `total_amount` are non-negative.
+- `is_valid_distance`: whether `trip_distance` is non-negative.
+- `is_valid_location`: whether pickup and dropoff location IDs exist in `dim_taxi_zone`.
 
-Quality metrics:
+## Run Modes
 
-- Invalid trip count
-- Invalid amount count and rate
-- Invalid distance count and rate
-- Invalid location count and rate
-- Quality rule status by business date
-
-## Commands
-
-Upload raw files to HDFS:
+Full initialization:
 
 ```bash
-cd /home/atguigu/project/nyc-taxi-data-quality
-bash lakehouse/scripts/upload_raw_to_hdfs.sh
-```
-
-Run the full lakehouse ETL:
-
-```bash
-cd /home/atguigu/project/nyc-taxi-data-quality
-export ICEBERG_JAR=/home/atguigu/jars/iceberg-spark-runtime-3.3_2.12-1.6.1.jar
 bash lakehouse/scripts/run_lakehouse_etl.sh
 ```
 
-Check ADS results:
+Business-date backfill:
 
 ```bash
-cd /home/atguigu/project/nyc-taxi-data-quality
-bash lakehouse/scripts/check_lakehouse_result.sh
+bash lakehouse/scripts/run_lakehouse_etl.sh 2025-01-10
 ```
 
-Export ADS tables to MariaDB:
+Check Iceberg through Trino:
 
 ```bash
-cd /home/atguigu/project/nyc-taxi-data-quality
-SPARK_MASTER=local[2] bash lakehouse/scripts/export_ads_to_mysql.sh
-```
-
-Create Grafana datasource and dashboard:
-
-```bash
-cd /home/atguigu/project/nyc-taxi-data-quality
-bash lakehouse/grafana/create_grafana_dashboard.sh
+bash lakehouse/scripts/check_trino_iceberg_result.sh 2025-01-10
 ```
 
 ## Interview Summary
 
-This project uses Spark SQL and Iceberg to build an ODS/DWD/DWS/ADS lakehouse pipeline. DWD keeps cleaned taxi trip details and adds quality flags for amount, distance, and location validity. DWS builds reusable daily, zone, and hourly summaries. ADS produces both business dashboard tables and quality-monitoring tables. The ADS tables are exported to MariaDB, and Grafana uses the MySQL datasource to display operation metrics and quality metrics in the same dashboard.
+This project builds an ODS-DWD-DWS-ADS offline lakehouse pipeline with Spark SQL and Iceberg. DWD adds amount, distance, and location quality flags. DWS builds reusable daily, zone, and hourly summaries. ADS produces business dashboard tables and quality-monitoring tables. The pipeline supports full initialization and business-date backfill; Iceberg `INSERT OVERWRITE` rewrites target partitions. Trino reads Iceberg ADS directly for Grafana.

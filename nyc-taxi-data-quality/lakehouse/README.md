@@ -1,8 +1,6 @@
-# NYC Taxi Lakehouse Analytics
+# NYC Taxi Offline Lakehouse Module
 
-This module upgrades the original NYC Taxi data quality project into a small lakehouse analytics project.
-
-The main goal is taxi operation analysis with built-in quality monitoring. Business metrics and quality metrics are both produced from Iceberg DWD and exposed through the same ADS layer.
+This module contains the lakehouse pipeline for the NYC Taxi offline analytics project.
 
 ## Data Flow
 
@@ -14,82 +12,51 @@ NYC Taxi raw parquet / taxi zone csv
 -> Iceberg DIM / DWD
 -> Iceberg DWS
 -> Iceberg ADS
--> MariaDB ADS export tables
+-> Trino
 -> Grafana
-```
-
-Quality metrics are generated from the same DWD table:
-
-```text
-Iceberg DWD quality flags
--> Iceberg ADS quality tables
--> MariaDB ADS export tables
--> Grafana business + quality dashboard
 ```
 
 ## Components
 
 - Spark SQL: batch ETL and warehouse layering.
-- Iceberg: lakehouse table format for ODS/DWD/DWS/ADS.
+- Iceberg: table format for ODS/DWD/DWS/ADS and partition overwrite backfill.
 - HDFS: raw file and Iceberg warehouse storage.
-- MariaDB: dashboard serving layer for ADS export tables.
-- Grafana: business dashboard.
-
-## Tables
-
-ODS:
-
-- `ods_yellow_taxi_trip`
-- `ods_taxi_zone`
-
-DIM/DWD:
-
-- `dim_taxi_zone`
-- `dwd_taxi_trip_detail`
-
-DWS:
-
-- `dws_taxi_day_stat`
-- `dws_pickup_zone_day_stat`
-- `dws_pickup_hour_stat`
-
-ADS:
-
-- `ads_taxi_daily_overview`
-- `ads_pickup_zone_top10`
-- `ads_pickup_hour_trend`
-- `ads_taxi_quality_overview`
-- `ads_taxi_quality_rule_result`
-
-## Business Metrics
-
-- Daily trip count
-- Daily total amount
-- Average order amount
-- Average trip distance
-- Average trip duration
-- Abnormal trip count and rate
-- Pickup zone Top10
-- Hourly pickup trend
-- Quality invalid count and rate
-- Quality rule result by business date
+- Trino: direct query engine for Iceberg ADS tables.
+- Grafana: business and quality dashboard.
 
 ## Main Files
 
 - `sql/00_spark_iceberg_settings.sql`: Spark Iceberg catalog settings.
 - `sql/01_ods_iceberg.sql`: raw data loading into Iceberg ODS tables.
-- `sql/02_dwd_iceberg.sql`: DIM and DWD processing.
-- `sql/03_dws_iceberg.sql`: reusable summary tables.
-- `sql/04_ads_iceberg.sql`: dashboard result tables.
-- `sql/05_ads_quality_iceberg.sql`: dashboard-ready quality result tables.
-- `sql/06_export_ads_to_mysql.sql`: Spark SQL JDBC export from Iceberg ADS to MariaDB.
+- `sql/02_dwd_iceberg.sql`: DIM and DWD processing with quality flags.
+- `sql/03_dws_iceberg.sql`: reusable daily, zone, and hourly summaries.
+- `sql/04_ads_iceberg.sql`: dashboard business result tables.
+- `sql/05_ads_quality_iceberg.sql`: dashboard quality result tables.
+- `trino/iceberg.properties`: Trino Iceberg connector configuration.
 - `scripts/upload_raw_to_hdfs.sh`: uploads raw files to HDFS.
-- `scripts/run_lakehouse_etl.sh`: runs all Spark SQL jobs.
-- `scripts/export_ads_to_mysql.sh`: exports ADS tables to MariaDB.
-- `trino/iceberg.properties`: Trino Iceberg catalog example.
-- `trino/dashboard_queries.sql`: SQL examples for Grafana.
-- `grafana/create_grafana_dashboard.sh`: creates the Grafana datasource and dashboard.
+- `scripts/run_lakehouse_etl.sh`: runs Iceberg ETL, supports full mode and one-date backfill.
+- `scripts/start_trino.sh`: starts Trino with the local Java 17 runtime.
+- `scripts/check_trino_iceberg_result.sh`: checks Iceberg ADS through Trino.
+- `grafana/trino_datasource.json`: Trino datasource definition.
+- `grafana/nyc_taxi_lakehouse_trino_dashboard.json`: Trino dashboard definition.
+- `grafana/create_grafana_dashboard.sh`: creates the Trino datasource and dashboard.
 
-## Interview Summary
+## Run Modes
 
-This project uses Iceberg to manage lakehouse tables and keeps the familiar ODS/DWD/DWS/ADS modeling flow. Spark SQL writes Iceberg tables, DWD adds quality flags, ADS produces both operation metrics and quality-monitoring metrics, and Grafana displays them in the same dashboard through MariaDB ADS export tables.
+Full initialization:
+
+```bash
+bash lakehouse/scripts/run_lakehouse_etl.sh
+```
+
+One-date backfill:
+
+```bash
+bash lakehouse/scripts/run_lakehouse_etl.sh 2025-01-10
+```
+
+Check Iceberg through Trino:
+
+```bash
+bash lakehouse/scripts/check_trino_iceberg_result.sh 2025-01-10
+```

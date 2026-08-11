@@ -77,7 +77,11 @@ SELECT
     cbd_congestion_fee,
     CAST(tpep_pickup_datetime AS DATE) AS biz_date
 FROM raw_yellow_taxi_trip
-WHERE tpep_pickup_datetime IS NOT NULL;
+WHERE tpep_pickup_datetime IS NOT NULL
+  AND (
+      '${hivevar:biz_date}' = '__ALL__'
+      OR CAST(tpep_pickup_datetime AS DATE) = to_date('${hivevar:biz_date}')
+  );
 
 INSERT OVERWRITE ods_taxi_zone
 SELECT

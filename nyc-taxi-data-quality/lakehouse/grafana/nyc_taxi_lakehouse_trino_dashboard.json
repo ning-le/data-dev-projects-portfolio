@@ -1,8 +1,8 @@
 {
   "dashboard": {
     "id": null,
-    "uid": "nyc-taxi-lakehouse",
-    "title": "NYC Taxi Lakehouse Analytics",
+    "uid": "nyc-taxi-lakehouse-trino",
+    "title": "NYC Taxi Lakehouse Analytics - Trino Iceberg",
     "timezone": "browser",
     "schemaVersion": 39,
     "version": 1,
@@ -19,15 +19,14 @@
           "h": 4
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT SUM(trip_cnt) AS total_trips FROM ads_taxi_daily_overview",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT SUM(trip_cnt) AS total_trips FROM iceberg.taxi_dw.ads_taxi_daily_overview"
           }
         ],
         "fieldConfig": {
@@ -49,15 +48,14 @@
           "h": 4
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT ROUND(SUM(total_amount),2) AS total_amount FROM ads_taxi_daily_overview",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT ROUND(SUM(total_amount),2) AS total_amount FROM iceberg.taxi_dw.ads_taxi_daily_overview"
           }
         ],
         "fieldConfig": {
@@ -79,15 +77,14 @@
           "h": 4
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT ROUND(SUM(total_amount)/SUM(trip_cnt),2) AS avg_amount FROM ads_taxi_daily_overview",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT ROUND(SUM(total_amount)/SUM(trip_cnt),2) AS avg_amount FROM iceberg.taxi_dw.ads_taxi_daily_overview"
           }
         ],
         "fieldConfig": {
@@ -109,15 +106,14 @@
           "h": 4
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT ROUND(SUM(invalid_trip_cnt)/SUM(total_trip_cnt),4) AS invalid_rate FROM ads_taxi_quality_overview",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT ROUND(SUM(invalid_trip_cnt)/SUM(total_trip_cnt),4) AS invalid_rate FROM iceberg.taxi_dw.ads_taxi_quality_overview"
           }
         ],
         "fieldConfig": {
@@ -139,15 +135,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT biz_date AS time, trip_cnt FROM ads_taxi_daily_overview ORDER BY biz_date",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT CAST(biz_date AS timestamp) AS time, trip_cnt FROM iceberg.taxi_dw.ads_taxi_daily_overview ORDER BY biz_date"
           }
         ],
         "fieldConfig": {
@@ -169,15 +164,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT biz_date AS time, total_amount FROM ads_taxi_daily_overview ORDER BY biz_date",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT CAST(biz_date AS timestamp) AS time, total_amount FROM iceberg.taxi_dw.ads_taxi_daily_overview ORDER BY biz_date"
           }
         ],
         "fieldConfig": {
@@ -190,7 +184,7 @@
       },
       {
         "id": 7,
-        "title": "Pickup Zone Top10 2025-01-10",
+        "title": "Pickup Zone Top10 Latest Date",
         "type": "barchart",
         "gridPos": {
           "x": 0,
@@ -199,15 +193,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT pickup_zone, trip_cnt FROM ads_pickup_zone_top10 WHERE biz_date='2025-01-10' ORDER BY rank_no",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT pickup_zone, trip_cnt FROM iceberg.taxi_dw.ads_pickup_zone_top10 WHERE biz_date = (SELECT MAX(biz_date) FROM iceberg.taxi_dw.ads_pickup_zone_top10) ORDER BY rank_no"
           }
         ],
         "fieldConfig": {
@@ -229,15 +222,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT DATE_ADD(biz_date, INTERVAL pickup_hour HOUR) AS time, trip_cnt FROM ads_pickup_hour_trend ORDER BY biz_date, pickup_hour",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT date_add('hour', pickup_hour, CAST(biz_date AS timestamp)) AS time, trip_cnt FROM iceberg.taxi_dw.ads_pickup_hour_trend ORDER BY biz_date, pickup_hour"
           }
         ],
         "fieldConfig": {
@@ -259,15 +251,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT biz_date AS time, overall_invalid_rate FROM ads_taxi_quality_overview ORDER BY biz_date",
-            "rawQuery": true
+            "format": 0,
+            "rawSQL": "SELECT CAST(biz_date AS timestamp) AS time, overall_invalid_rate FROM iceberg.taxi_dw.ads_taxi_quality_overview ORDER BY biz_date"
           }
         ],
         "fieldConfig": {
@@ -289,15 +280,14 @@
           "h": 8
         },
         "datasource": {
-          "type": "mysql",
-          "uid": "nyc_taxi_mysql"
+          "type": "trino-datasource",
+          "uid": "nyc_taxi_trino"
         },
         "targets": [
           {
             "refId": "A",
-            "format": "table",
-            "rawSql": "SELECT biz_date, rule_name, rule_target, check_status, failed_count, total_count, failed_rate FROM ads_taxi_quality_rule_result ORDER BY biz_date, rule_name, rule_target",
-            "rawQuery": true
+            "format": 1,
+            "rawSQL": "SELECT biz_date, rule_name, rule_target, check_status, failed_count, total_count, failed_rate FROM iceberg.taxi_dw.ads_taxi_quality_rule_result ORDER BY biz_date, rule_name, rule_target"
           }
         ],
         "fieldConfig": {

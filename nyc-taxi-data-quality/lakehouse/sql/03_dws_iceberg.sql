@@ -51,6 +51,8 @@ SELECT
     ROUND(AVG(trip_duration_sec), 2) AS avg_duration_sec,
     SUM(CASE WHEN is_valid_amount = 0 OR is_valid_distance = 0 OR is_valid_location = 0 THEN 1 ELSE 0 END) AS abnormal_trip_cnt
 FROM dwd_taxi_trip_detail
+WHERE '${hivevar:biz_date}' = '__ALL__'
+   OR biz_date = to_date('${hivevar:biz_date}')
 GROUP BY biz_date;
 
 INSERT OVERWRITE dws_pickup_zone_day_stat
@@ -64,6 +66,10 @@ SELECT
     ROUND(AVG(total_amount), 2) AS avg_amount
 FROM dwd_taxi_trip_detail
 WHERE pickup_location_id IS NOT NULL
+  AND (
+      '${hivevar:biz_date}' = '__ALL__'
+      OR biz_date = to_date('${hivevar:biz_date}')
+  )
 GROUP BY
     biz_date,
     pickup_location_id,
@@ -82,4 +88,8 @@ SELECT
     SUM(CASE WHEN is_valid_amount = 0 OR is_valid_distance = 0 OR is_valid_location = 0 THEN 1 ELSE 0 END) AS abnormal_trip_cnt
 FROM dwd_taxi_trip_detail
 WHERE pickup_hour IS NOT NULL
+  AND (
+      '${hivevar:biz_date}' = '__ALL__'
+      OR biz_date = to_date('${hivevar:biz_date}')
+  )
 GROUP BY biz_date, pickup_hour;
